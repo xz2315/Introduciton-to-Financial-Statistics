@@ -1,0 +1,579 @@
+---
+title: "Stat 107: Introduction to Business and Financial Statistics
+                  Homework 5: Due Thursday, October 13"
+author: "Xiner Zhou"
+date: "October 14, 2016"
+output: word_document
+---
+
+# (1) 
+![Teall book, page 137, problem 7.1 ](E:\Course Work at Harvard\Introduction to Financial Statisitcs\pic\Teall7_1.png). 
+
+##### (a)
+
+$$\left[\begin{array}
+{rrr}
+4+3\\6-6\\5+5
+\end{array}\right]
+=
+\left[\begin{array}
+{rrr}
+7\\0\\10
+\end{array}\right]
+$$
+
+```{r}
+vec1<-c(4,6,5)
+vec2<-c(3,-6,5)
+vec1+vec2
+```
+
+##### (b)
+
+$$\left[\begin{array}
+{rrr}
+4+3 & 6-6\\5+5 & 2+0.5
+\end{array}\right]
+=
+\left[\begin{array}
+{rrr}
+7 & 0\\10 & 2.5
+\end{array}\right]
+$$
+
+```{r}
+mat1<-matrix(c(4,6,5,2),nrow=2,ncol=2,byrow = T)
+mat2<-matrix(c(3,-6,5,0.5),nrow=2,ncol=2,byrow = T)
+mat1+mat2
+```
+
+-----
+
+
+
+# (2) 
+![Teall book, page 138, problem 7.4 ](E:\Course Work at Harvard\Introduction to Financial Statisitcs\pic\Teall7_4.png). 
+
+##### (a)
+
+$$\left[\begin{array}
+{rrr}
+2\times(-2)+4\times(-\frac{3}{2})  & 2\times(1)+4\times(-\frac{1}{2}) \\ 3(-2)+4\times(\frac{3}{2}) &  3(1)+4\times(-\frac{1}{2})
+\end{array}\right]
+=
+\left[\begin{array}
+{rrr}
+2 & 0 \\0 & 1 
+\end{array}\right]
+$$
+
+```{r}
+mat1<-matrix(c(2,4,3,4),nrow=2,ncol=2,byrow = T)
+mat2<-matrix(c(-2,1,3/2,-1/2),nrow=2,ncol=2,byrow = T)
+mat1%*%mat2
+```
+
+##### (b)
+
+$$\left[\begin{array}
+{rrr}
+1\times(-2)+0\times(\frac{3}{2})  & 1\times(1)+0\times(-\frac{1}{2}) \\ 0(-2)+1\times(1) &  0(1)+1\times(-\frac{1}{2})
+\end{array}\right]
+=
+\left[\begin{array}
+{rrr}
+-2 & 1 \\1 & -\frac{1}{2} 
+\end{array}\right]
+$$
+
+```{r}
+mat1<-matrix(c(1,0,0,1),nrow=2,ncol=2,byrow = T)
+mat2<-matrix(c(-2,1,3/2,-1/2),nrow=2,ncol=2,byrow = T)
+mat1%*%mat2
+```
+
+##### (c)
+ 
+$$ 0.04 \times 8.3333 \times 
+\left[\begin{array}
+{rrr}
+1 & 1 \\ 1 & 4
+\end{array}\right] \times
+\left[\begin{array}
+{rrr}
+4 & -1 \\-1 1
+\end{array}\right]$$
+
+$$=\frac{2}{50} \times \frac{25}{3} 
+\times
+\left[\begin{array}
+{rrr}
+1\times 4+1 \times (-1) & 1 \times (-1) +1 \times 1 \\ 
+1\times 4+4 \times (-1) & 1 \times (-1) +4 \times 1
+\end{array}\right]$$
+
+$$=\frac{1}{3}
+\times
+\left[\begin{array}
+{rrr}
+1 & 0 \\ 0 & 3
+\end{array}\right]$$
+ 
+
+```{r}
+mat1<-matrix(c(0.04,0.04,0.04,0.16),nrow=2,ncol=2,byrow = T)
+mat2<-matrix(c(33.3333,-8.3333,-8.3333,8.3333),nrow=2,ncol=2,byrow = T)
+mat1%*%mat2
+```
+
+##### (d)
+
+$$0.02 \times 0.02 \times
+\left[\begin{array}
+{rrr}
+1 & 8 & 5
+\end{array}\right]
+\times
+\left[\begin{array}
+{rrr}
+1 \\ 8 \\ 5
+\end{array}\right]$$
+
+$$=0.02 \times 0.02 \times (1\times 1+8\times 8+5\times 5)= 0.02 \times 0.02 \times 90=0.036$$
+
+```{r}
+mat<-matrix(c(0.02,0.16,0.10),nrow=3,ncol=1,byrow = T)
+t(mat)%*%mat 
+```
+
+##### (e)
+
+$$\left[\begin{array}
+{rrr}
+4 \times 4 & 4 \times 5 & 4 \times 6 \\ 5 \times 4 & 5 \times 5 & 5 \times 6  \\ 6 \times 4 & 6 \times 5 & 6 \times 6 
+\end{array}\right]
+=
+\left[\begin{array}
+{rrr}
+16 & 20 & 24 \\ 20 & 25 & 30 \\ 24 & 30 & 36
+\end{array}\right]$$
+
+```{r}
+mat<-matrix(c(4,5,6),nrow=3,ncol=1,byrow = T)
+mat%*%t(mat)
+```
+
+-----
+
+
+
+# (3) 
+![Teall book, page 138, problem 7.6 ](E:\Course Work at Harvard\Introduction to Financial Statisitcs\pic\Teall7_6_1.png). 
+![](E:\Course Work at Harvard\Introduction to Financial Statisitcs\pic\Teall7_6_2.png). 
+
+##### (a)
+
+$$ r=\left[\begin{array}
+{rrr}
+0.07\\0.09 \\ 0.13
+\end{array}\right]
+$$
+```{r}
+r<-matrix(c(0.07,0.09,0.13),nrow=3,ncol=1,byrow=T)
+rownames(r)<-c("X","Y","Z")
+r
+```
+
+##### (b)
+
+$$ V=\left[\begin{array}
+{rrr}
+0.04 & 0.01 & 0.02 \\ 0.01 & 0.16 & 0.08  \\ 0.02 & 0.08 & 0.36 
+\end{array}\right]$$
+
+```{r}
+V<-matrix(c(0.04,0.01,0.02,
+                0.01,0.16,0.08,
+                0.02,0.08,0.36),nrow=3,ncol=3,byrow = T)
+colnames(V)<-c("X","Y","Z")
+rownames(V)<-c("X","Y","Z")
+V
+```
+
+##### (c)
+
+$$ w=\left[\begin{array}
+{rrr}
+0.3\\0.5 \\ 0.2
+\end{array}\right]
+$$
+
+
+```{r}
+w <-matrix(c(0.3,0.5,0.2),nrow=3,ncol=1,byrow=T)
+rownames(w )<-c("X","Y","Z")
+w 
+```
+
+##### (d)
+
+The expected return is 3 by 1 matrix; Variance-Covariance matrix is 3 by 3; the weight is 3 by 1 matrix.
+ 
+##### (e)
+
+$$ E(R_p)=w^T\times r=\left[\begin{array}
+{rrr}
+0.3 & 0.5 & 0.2
+\end{array}\right]
+\times 
+\left[\begin{array}
+{rrr}
+0.07\\0.09 \\ 0.13
+\end{array}\right]=0.3\times 0.07+0.5\times 0.09+0.2\times 0.13=0.092$$
+
+```{r}
+cat("Expected return of the portfolio is:", t(w)%*%r,'\n')
+```
+
+##### (f)
+
+$$ V(R_p)=w^T\times V \times w=\left[\begin{array}
+{rrr}
+0.3 & 0.5 & 0.2
+\end{array}\right]
+\times 
+\left[\begin{array}
+{rrr}
+0.04 & 0.01 & 0.02 \\ 0.01 & 0.16 & 0.08  \\ 0.02 & 0.08 & 0.36 
+\end{array}\right]
+\times
+\left[\begin{array}
+{rrr}
+0.3\\0.5 \\ 0.2
+\end{array}\right]=0.0794$$
+ 
+
+```{r}
+cat("Variance of the portfolio is:", t(w)%*%V%*%w,'\n')
+```
+
+-----
+
+
+
+# (4) 
+![Teall book, page 139, problem 7.7 ](E:\Course Work at Harvard\Introduction to Financial Statisitcs\pic\Teall7_7.png). 
+
+##### (a)
+
+$$\left[\begin{array}
+{rrr}
+8&|&1
+\end{array}\right]
+->
+\left[\begin{array}
+{rrr}
+1&|&\frac{1}{8}
+\end{array}\right]
+$$
+
+```{r}
+mat<-matrix(c(8),nrow=1,ncol = 1,byrow = T)
+solve(mat)
+```
+
+##### (b)
+
+$$\left[\begin{array}
+{rrr}
+1 & 0 &|& 1 & 0 \\ 0 & 1 &|& 0 & 1
+\end{array}\right]
+$$
+
+```{r}
+mat<-matrix(c(1,0,0,1),nrow=2,ncol = 2,byrow = T)
+solve(mat)
+```
+
+##### (c)
+
+$$\left[\begin{array}
+{rrr}
+4 & 0 &|& 1 & 0 \\ 0 & \frac{1}{2} &|& 0 & 1
+\end{array}\right]
+->
+\left[\begin{array}
+{rrr}
+1 & 0 &|& \frac{1}{4} & 0 \\ 0 & 1 &|& 0 & 2
+\end{array}\right]
+$$
+
+```{r}
+mat<-matrix(c(4,0,0,1/2),nrow=2,ncol=2,byrow = T)
+solve(mat)
+```
+
+##### (d)
+
+$$\left[\begin{array}
+{rrr}
+1 & 2 &|& 1 & 0 \\ 3 & 4 &|& 0 & 1
+\end{array}\right]
+->
+\left[\begin{array}
+{rrr}
+1 & 2 &|& 1 & 0 \\ 0 & -2 &|& -3 & 1
+\end{array}\right]
+->
+\left[\begin{array}
+{rrr}
+1 & 0 &|& -2 & 0 \\ 0 & 1 &|& \frac{3}{2} & -\frac{1}{2}
+\end{array}\right]
+$$
+
+
+```{r}
+mat<-matrix(c(1,2,3,4),nrow=2,ncol =2,byrow = T)
+solve(mat)
+```
+
+##### (e)
+
+$$\left[\begin{array}
+{rrr}
+0.02 & 0.04 &|& 1 & 0 \\ 0.06 & 0.08 &|& 0 & 1
+\end{array}\right]
+->
+\left[\begin{array}
+{rrr}
+1 & 2 &|& 50 & 0 \\ 3 & 4 &|& 0 & 50
+\end{array}\right]
+->
+\left[\begin{array}
+{rrr}
+1 & 2 &|& 50 & 0 \\ 0 & -2 &|& -150 & 50
+\end{array}\right]
+->
+\left[\begin{array}
+{rrr}
+1 & 0 &|& -100 & 50 \\ 0 & 1 &|& 75 & -25
+\end{array}\right]
+$$
+
+```{r}
+mat<-matrix(c(0.02,0.04,0.06,0.08),nrow=2,ncol =2,byrow = T)
+solve(mat)
+```
+
+##### (f)
+
+```{r}
+mat<-matrix(c(-2,1,1.5,-0.5),nrow=2,ncol =2,byrow = T)
+solve(mat)
+```
+
+##### (g)
+
+$$\left[\begin{array}
+{rrr}
+33.33 & -8.33 &|& 1 & 0 \\ -8.33 & 8.33 &|& 0 & 1
+\end{array}\right]
+->
+\left[\begin{array}
+{rrr}
+4 & -1 &|&  \frac{3}{25} & 0 \\ -1 &  1 &|& 0 & \frac{3}{25} 
+\end{array}\right]
+->
+\left[\begin{array}
+{rrr}
+1 & -\frac{1}{4} &|&  \frac{3}{100} & 0 \\ -1 &  1 &|& 0 & \frac{3}{25} 
+\end{array}\right]
+->
+\left[\begin{array}
+{rrr}
+1 & -\frac{1}{4} &|&  \frac{3}{100} & 0 \\ 0 &  \frac{3}{4} &|& \frac{3}{100} & \frac{3}{25}  
+\end{array}\right]
+->
+\left[\begin{array}
+{rrr}
+1 & 0 &|&  0.04 & 0.4 \\ 0 & 1 &|& 0.4 & 0.16
+\end{array}\right]
+$$
+
+```{r}
+mat<-matrix(c(33.33,-8.33,-8.33,8.33),nrow=2,ncol =2,byrow = T)
+solve(mat)
+```
+
+##### (h)
+
+$$\left[\begin{array}
+{rrr}
+2 & 0 & 0 &|& 1 & 0 & 0\\ 2 & 4 & 0 &|& 0 & 1 & 0\\ 4 & 8 & 20 &|& 0 & 0 & 1 
+\end{array}\right]
+->
+\left[\begin{array}
+{rrr}
+2 & 0 & 0 &|& 1 & 0 & 0\\ 0 & 4 & 0 &|& -1 & 1 & 0\\ 0 & 8 & 20 &|& -2 & 0 & 1 
+\end{array}\right]
+->
+\left[\begin{array}
+{rrr}
+2 & 0 & 0 &|& 1 & 0 & 0\\ 0 & 4 & 0 &|& -1 & 1 & 0\\ 0 & 0 & 20 &|& 0 & -2 & 1 
+\end{array}\right]
+->
+\left[\begin{array}
+{rrr}
+1 & 0 & 0 &|& \frac{1}{2} & 0 & 0\\ 0 & 1 & 0 &|& -\frac{1}{4} & \frac{1}{4} & 0\\ 0 & 0 & 1 &|& 0 & -\frac{1}{10} & \frac{1}{20} 
+\end{array}\right]
+$$
+
+
+```{r}
+mat<-matrix(c(2,0,0,2,4,0,4,8,20),nrow=3,ncol =3,byrow = T)
+solve(mat)
+```
+
+-----
+
+
+
+# (5) 
+![Teall book, page 139, problem 7.9 ](E:\Course Work at Harvard\Introduction to Financial Statisitcs\pic\Teall7_9.png). 
+```{r}
+C<-matrix(c(0.08,0.08,0.1,1,
+            0.08,0.32,0.2,1,
+            0.1, 0.2, 0,  0,
+            1,   1,   0,  0),nrow=4,ncol =4,byrow = T)
+s<-matrix(rep(0.1,4),nrow=4,ncol=1,byrow = T)
+solve(C)%*%s
+```
+
+-----
+
+
+
+# (6) 
+![](E:\Course Work at Harvard\Introduction to Financial Statisitcs\pic\HW5Q6.png). 
+
+![Answer](E:\Course Work at Harvard\Introduction to Financial Statisitcs\pic\HW5Q6answer.png).
+
+The portfolio puts 35.28% in Stock A and 64.72% in Stock B, has the same standard deviation 20.78%, but with substantially higher expected return 45.62%. This portfolio dominates the 90%/10% portfolio.
+
+-----
+
+
+
+# (7)
+
+For this question, you will need to use the Excel spreadsheet hw5sheet1.xls..
+
+The spreadsheet contains statistical summaries of stock indices from seven countries, with their average returns, standard deviations, and correlations over the period 1980-1993. We assume that these data provide good approximations for future expected returns, volatilities and correlations. [Note: this may not necessarily be the case in reality; past realizations are not necessarily a good indicator of future performance]. The spreadsheet also contains the covariance matrix of these seven indices. 
+
+##### (a)
+Calculate the mean and standard deviation for the Global Minimum Variance portfolio (i.e., the portfolio that has the lowest variance of all possible portfolios that can be created using the assets provided). Assume short sales are permitted. Show also the portfolio weights. 
+
+```{r}
+# vector of expected returns
+er<-c(15.70, 21.70, 18.30, 17.30, 14.80, 10.50, 17.20)
+
+# covariance matrix
+cov.mat<-matrix(c(445.21,	195.18,	262.80,	145.93,	250.41,	360.43,	246.95,
+                  195.18,	625.00,	276.13,	239.40,	200.10,	210.60,	418.95,
+                  262.80,	276.13,	552.25,	268.79,	324.30,	296.95,	318.80,
+                  145.93,	239.40,	268.79,	707.56,	190.88,	180.51,	297.18,
+                  250.41,	200.10,	324.30,	190.88,	761.76,	361.67,	249.61,
+                  360.43,	210.60,	296.95,	180.51,	361.67,	547.56,	242.75,
+                  246.95,	418.95,	318.80,	297.18,	249.61,	242.75,	707.56),
+                nrow=7,ncol=7,byrow=T)
+
+names(er)<-c('US','Germany','UK','Japan','Australia','Canada','France')
+colnames(cov.mat)<-c('US','Germany','UK','Japan','Australia','Canada','France')
+rownames(cov.mat)<-c('US','Germany','UK','Japan','Australia','Canada','France')
+
+# include Eric Zivot source code
+source("E:/Course Work at Harvard/Introduction to Financial Statisitcs/Eric Zivot.R")
+
+# Compute the Global Minimum Vairance Portfolio
+gmin.port<-globalMin.portfolio(er, cov.mat)
+print(gmin.port)
+plot(gmin.port)
+```
+
+**Verify in Excel, they give the same results, that is, the GMV portfolio has expected return 17.12% and standard deviation 17.20%.**
+
+![Answer](E:\Course Work at Harvard\Introduction to Financial Statisitcs\pic\HW5Q7a.png).
+ 
+
+
+##### (b)
+Suppose the riskless rate is 5.5% (hahahaha) for both borrowing and lending. What is the expected return and standard deviation of the Tangent Portfolio? What are the portfolio weights in this case? Assume that short sales are permitted. 
+
+```{r}
+# Compute the tangency portfolio
+rk.free<-5.5
+tan.port<-tangency.portfolio(er, cov.mat, rk.free)
+print(tan.port)
+plot(tan.port)
+```
+
+**Verify in Excel, they give the same results, that is, the GMV portfolio has expected return 22.87% and standard deviation 21.03%.**
+
+![Answer](E:\Course Work at Harvard\Introduction to Financial Statisitcs\pic\HW5Q7b.png).
+ 
+ 
+Let's plot the efficient frontier with the Global Minimum Variance POrtfolio and Tangency Portfolio, along with the CML, and visualize it. 
+
+```{r}
+ef<-efficient.frontier(er, cov.mat, nport=100, alpha.min=-5, alpha.max=5)
+# plot efficient frontier
+plot(ef, plot.assets=T)
+
+# add GMV portfolio
+points(gmin.port$sd, gmin.port$er, col="blue", pch=21, bg="blue")
+text(gmin.port$sd+0.015, gmin.port$er, "Minimum Variance", col="blue")
+
+# add tangency portfolio
+points(tan.port$sd, tan.port$er, col="red", pch=21, bg="red")
+text(tan.port$sd+0.015, tan.port$er, "Tangent", col="red")
+
+# compute slope of tangent line (aka capital market line)
+sr.tan<-(tan.port$er-rk.free)/tan.port$sd
+# Adds a line to the plot representing the CML
+abline(a=rk.free, b=sr.tan,col="red")
+```
+
+##### (c)
+Redo part (b) assuming that no short sales are permitted. Do the weights change greatly? 
+ 
+**If no short sales are allowed, the portfolio weights change dramatically. The non-constraint portfolio suggests that puts 65% into US, 54% into Germany, 26% into UK, 20% into Japna, 15% into Australia, while shorting 64% Canada, shorting 16% France. There are two big short in Canada and France. The new portfolio basically suggests that don't invest in Australia, Canada and France, puts large share (44%) into Germany, and put the rest shares more homogeneously into US, US and Japan. **
+
+![Answer](E:\Course Work at Harvard\Introduction to Financial Statisitcs\pic\HW5Q7c.png). 
+ 
+For the following, suppose you are a fund manager whose available assets are limited to the above seven country indices and a riskless investment rate of 5.5% (for example, you could assume that this is the annual rate on bank Certificates of Deposit). You have been asked to advise two clients on their optimal portfolio mix based on their risk-return preferences and income/liquidity needs. Assume that there are no taxes, no inflation, and no transactions costs (i.e., ignore your fee for advising and investing on behalf of your clients). 
+
+##### (d)
+Consider a client who is a relatively conservative middle-aged man with a reasonable level of income and a family to take care of. He wants to earn a better return than the 5.5% CD rate at the bank, but indicates that the maximum annual standard deviation he could tolerate is 12%. He also has a strong aversion to short selling. He asks you to invest $250,000 for him. 
+
+###### (i)
+Can you create a portfolio solely with the seven country indices that has a portfolio standard deviation of 12% or less? Explain.
+
+![Answer](E:\Course Work at Harvard\Introduction to Financial Statisitcs\pic\HW5Q7d1.png). 
+
+**No, I can't create a portfolio solely with the seven country indices that has a portfolio standard deviation of 12% or less. Because the Global Minimum Variance portfolio with no short sale has a standard deviation of 17.2%, that means, regardless of the expected return, the minimum risk is 18.44%, no less. The 12% risk portfolio is impossible. If put 12% as constraint in Solver, it doesn't find any feasible solution.**
+
+![Answer](E:\Course Work at Harvard\Introduction to Financial Statisitcs\pic\HW5Q7d2.png). 
+
+###### (ii)
+Consider a portfolio consisting of the tangency portfolio with no short sales and a bank Certificate of Deposit. What percentage of the client's wealth should be placed in each asset (the tangency portfolio and the Certificate of Deposit) to achieve a portfolio standard deviation of 12%?
+
+**Since $\sigma_P=w \times \sigma_A$, and We know that the standard deviation of the tangency portfolio with no short sales is 18.44%. We should put $\frac{12}{18.44}=65.08$ % of the Client's wealth into the tangency portfolio, and the rest 34.92% into the certificate of Deposit to achieve a portfolio standard deviation of 12%.**
+??? 
+ 
+###### (iii)
+What is the expected return of the portfolio found in part (ii)? 
+
+```{r}
+cat("The expected return=",(12/18.44)*19.06+(1-12/18.44)*5.5,'\n')
+```
+

@@ -1,0 +1,546 @@
+---
+title: "Stat 107: Quantitative Methods for Economics
+            Homework 8: Due Monday, December 5"
+author: "Xiner Zhou"
+date: "December 2, 2016"
+output: word_document
+---
+
+The purpose of this problem is to test two pairs trading strategy. There are many methods to perform pairs trading; for this exercise we will use a method detailed in the paper *Evaluation of Pairs Trading Strategy at the Brazilian Financial Market*, available on the course web site, and the method used by pairslog.com (which unfortunately is currently down).
+
+The most important parts of the Brazilian paper are on pages 6 and 7. The trading idea in the paper is as follows.
+
+1) Choose two stocks that you think are related to each other
+2) Normalize both stock prices
+3) Trade when the absolute value of difference of the normalized value is larger than some cut-off value d (see his Table 2 for values of d).
+4) Close out the trades when the difference crosses 0.
+
+For the website pairslog.com they do the following.
+
+1) Choose two stocks that you think are related to each other
+2) Calculate the normalized ratio of closing prices.
+3) Trade when the normalized value is larger than 2.
+4) Close out the trades when the ratio crosses 0.
+5) Note that if you try to match their numbers exactly, pairslog.com divides by the standard deviation for the population, so they divide by n instead of n-1 in their standard deviation formula.
+
+Note that there are many variations of these two techniques.
+
+Let's now implement this in R. From pairslog.com we find that AMP/OZM is potentially a good pair of stocks to trade (look the symbols up on Yahoo so you know what there are):
+![](E:\Course Work at Harvard\Introduction to Financial Statisitcs\pic\HW8 picture1.png)
+The website pairslog.com uses a 14 day window to calculate statistics such as means and variance so will use that in our calculations.
+
+-----
+
+
+The following R code shows how to implement the two methods
+
+**Brazilian Method**
+```{r,warning=FALSE, message=FALSE, eval=FALSE}
+stock1="AMP"
+stock2="OZM"
+s1=getSymbols(stock1,from = "2010-01-01",auto.assign=FALSE)
+s2=getSymbols(stock2,from = "2010-01-01",auto.assign=FALSE)
+p1 = Ad(s1)
+p2 = Ad(s2)
+np1 = (p1-runMean(p1,n=14))/runSD(p1,14)
+np2 = (p2-runMean(p2,n=14))/runSD(p2,14)
+#Now that we have the normalized date, we form the difference.
+ndiff=(np1-np2)
+```
+
+We now are ready to implement the pairs trading strategy. When the difference gets too far away from its mean value of 0, a pairs trade is entered as follows:
+
+* If diff < -2, we go long stock1 and short stock2 in equal dollar amounts
+* If diff > 2, we short stock1 and go long stock2 in equal dollar amounts
+* The trade is closed when the absolute value of the difference crosses zero.
+
+All this would be calculated with end of day prices, or in practice, with prices obtained just before the close of the market.
+
+![](E:\Course Work at Harvard\Introduction to Financial Statisitcs\pic\HW8 picture2.png)
+
+All trades are at the close of market (end of day trades they are called).
+
+* On 3/13 we would short AMP at 57.60 and go long OZM at 9.44 
+* On 3/20 we would cover AMP at 57.27 and sell OZM at 9.67 
+* On 3/26 we would short AMP at 58.25 and go long OZM at 9.33 
+
+-----
+
+
+
+**Pairslog.com Method**
+```{r,warning=FALSE, message=FALSE, eval=FALSE}
+stock1="AMP"
+stock2="OZM"
+s1=getSymbols(stock1,from = "2010-01-01",auto.assign=FALSE)
+s2=getSymbols(stock2,from = "2010-01-01",auto.assign=FALSE)
+rat=Cl(s1)/Cl(s2)
+nrat=(rat-runMean(rat,14))/runSD(rat,14)
+```
+
+
+We now are ready to implement the pairs trading strategy. When the normalized ratio gets too far away from its mean value of 0, a pairs trade is entered as follows:
+
+* If nrat < -2, we go long stock1 and short stock2 in equal dollar amounts
+* If nrat > 2, we short stock1 and go long stock2 in equal dollar amounts
+* The trade is closed when the normalized ratio zero.
+
+All this would be calculated with end of day prices, or in practice, with prices obtained just before the close of the market.
+
+![](E:\Course Work at Harvard\Introduction to Financial Statisitcs\pic\HW8 picture3.png)
+
+All trades are at the close of market (end of day trades they are called).
+
+* On 3/6 we would short AMP at 54.17 and go long OZM at 9.02 
+* On 3/20 we would cover AMP at 57.27 and sell OZM at 9.67 
+* We lost 5.4% on AMP but made 7.02% on OZM 
+* On 3/26 we would short AMP at 58.25 and go long OZM at 9.33 
+
+-----
+
+
+
+
+
+**There are four separate deliverables for this problem.**
+
+1. Run the two pairs trading strategies on BKEP/DSX from October 2013 to present. To make the coding easier, we did the coding for you! The R function is pairs.trade in the file mypairspack.txt. You will have to slightly modify the code to keep trade of the individual trades though.
+
+```{r,warning=FALSE, message=FALSE}
+library(quantmod)
+library(tseries)
+library(PerformanceAnalytics)
+# Calculates correlation using 180-day rolling average and then plot 
+mycor=function(s1,s2) {
+ap1=Ad(getSymbols(s1,auto.assign=FALSE,from="2012-01-02"))
+ap2=Ad(getSymbols(s2,auto.assign=FALSE,from="2012-01-02"))
+n=length(ap2)  ## this is how many days we want to work with
+### some math...we want to start at day 180 and take the 
+### correlation from day 1 to day 180
+### we then continue and stop at day n-179
+### store the results in vals
+nn=n-179 # nn is the final length of correlation
+vals=1:nn # initialize place-holder
+for(i in 180:n) {
+ p1 = ap1[(i-179):i]
+ p2 = ap2[(i-179):i]
+ vals[i-179]=cor(p1,p2) # correlation
+}
+plot(EMA(vals),type="l") # plot the correlation over time
+}
+
+
+# Calculates co-integration p-values using 180-day rolling average and then plot 
+mycoin=function(s1,s2) {
+ap1=Ad(getSymbols(s1,auto.assign=FALSE,from="2012-01-02"))
+ap2=Ad(getSymbols(s2,auto.assign=FALSE,from="2012-01-02"))
+n=length(ap2)
+nn=n-179
+vals=1:nn
+for(i in 180:n) {
+ p1 = ap1[(i-179):i]
+ p2 = ap2[(i-179):i]
+ fit=lm(p1~-1+p2)
+ beta=coef(fit)[1]
+ sprd=p1-beta*p2
+ sprd=as.numeric(sprd)
+ # Augmented Dickey-Fuller Test, Alternative: Stationary. Want to Reject with small p-value
+ # Want larger than 0.95 (1-p value)
+ vals[i-179]=1-adf.test(sprd,alternative="stationary",k=0)$p.value 
+ }
+plot(EMA(vals),type="l")
+}
+
+ 
+# Calculates the last day cointegration p-value (ADF test) and Correlation, using prior 180 days
+myvals=function(s1,s2) {
+ap1=Ad(getSymbols(s1,auto.assign=FALSE,from="2013-01-02"))
+ap2=Ad(getSymbols(s2,auto.assign=FALSE,from="2013-01-02"))
+n=length(ap2)
+nn=n-179
+vals=1:nn
+ i=n
+ p1 = ap1[(i-179):i]
+ p2 = ap2[(i-179):i]
+ fit=lm(p1~-1+p2)
+ beta=coef(fit)[1]
+ sprd=p1-beta*p2
+ sprd=as.numeric(sprd)
+ cat("Cointegration p-value = ",adf.test(sprd,alternative="stationary",k=0)$p.value,"\n")
+ cat("Correlation = ",cor(p1,p2),"\n")
+ }
+
+ 
+# Implement Brazilian Method(diff) and Pairslog.com Method(ratio)
+pairs.trade <- function(stock1, stock2,from = "2010-01-01", to = Sys.Date(),ma.days,method,threshold,closeout){
+ require(quantmod)
+ 
+ x1 <- getSymbols(stock1, auto.assign = F, from = from, to = to)
+ x1 <- as.numeric(Ad(x1))
+
+ x2 <- getSymbols(stock2, auto.assign = F, from = from, to = to)
+ x2 <- as.numeric(Ad(x2))
+
+ if (method == "diff"){
+ x1.norm <- (x1 - runMean(x1, n = ma.days))/runSD(x1, ma.days)
+ x2.norm <- (x2 - runMean(x2, n = ma.days))/runSD(x2, ma.days)
+ out.ts <- x1.norm - x2.norm
+ } 
+ else if (method == "ratio"){
+ ts <- x1/x2
+ out.ts <- (ts - runMean(ts, n = ma.days))/runSD(ts, ma.days)
+ }
+ numdays <- length(out.ts)
+
+ # initialize quantities
+ x1.traded = x2.traded = 0
+ current = "neither"
+ profit = 0
+ all.profit=c()
+ maxprofit = minprofit = numtrades = winners = 0
+
+ for(i in ma.days:numdays){
+ # If diff or ratio out of range <-2, then long x1 and short x2
+ if(out.ts[i] < -threshold & current == "neither"){
+ x1.traded = (10000/x1[i])
+ x2.traded = (-10000/x2[i])
+ current = "x2"
+ numtrades = numtrades + 1
+ #print(paste("Short", stock2, "at", x2[i], "and Long", stock1, "at", x1[i]))
+ }
+
+ if(out.ts[i] > threshold & current == "neither"){
+ # If diff or ratio out of range >2, then short x1 and long x2
+ x1.traded = (-10000/x1[i])
+ x2.traded = (10000/x2[i])
+ current = "x1"
+ numtrades = numtrades + 1
+ #print(paste("Short", stock1, "at", x1[i],"and Long", stock2, "at", x2[i]))
+ }
+ 
+ # If current is short X2, it means diff/ratio is <-2 when traded executed, now the sign switchs, we should close the trade
+ # If current is short X1, it means diff/ratio is >+2 when traded executed, now the sign switchs, we should close the trade
+ if((out.ts[i] > 0 & current == "x2") | (out.ts[i] < 0 & current == "x1")){
+ profit.temp = x1.traded*x1[i] + x2.traded*x2[i]
+ all.profit=c(all.profit, profit.temp)
+ profit = profit + profit.temp
+ winners = winners + (profit.temp > 0)
+ maxprofit = max(maxprofit,profit.temp)
+ minprofit = min(minprofit,profit.temp)
+ x1.traded = 0
+ x2.traded = 0
+ current = "neither"
+ #print(paste("Closeout", stock1, "at", x1[i], "and", stock2, "at", x2[i]))
+ }
+ }
+
+ # Note: this optional closing out is outside the for loop!
+ # If x1 is still on trade and we require closeout at the end of the period
+ # At the end of the loop, i=numdays
+ if (x1.traded != 0 & closeout == T){
+ profit.temp = x1.traded*x1[i] + x2.traded*x2[i]
+ all.profit=c(all.profit, profit.temp)
+ profit = profit + profit.temp
+ winners = winners + (profit.temp > 0)
+ maxprofit = max(maxprofit,profit.temp)
+ minprofit = min(minprofit,profit.temp)
+ x1.traded = 0
+ x2.traded = 0
+ current = "neither"
+ }
+
+ # Counting issue
+ if (x1.traded != 0 & closeout == F){
+ numtrades = numtrades - 1
+ }
+ 
+ # average of winning trades and average of losing trades
+ ave.winning=mean(all.profit[all.profit>0])
+ ave.losing=mean(all.profit[all.profit<0])
+ 
+ # Sharpe Ratio
+ sharpe.ratio=mean(all.profit)/sd(all.profit)
+ 
+ # tabulate results as a list
+ results = list(Winners = winners,
+ number.of.trades = numtrades,
+ winning.percentage = 100*winners/numtrades,
+ max.profit = maxprofit,
+ min.profit = minprofit,
+ ave.losing = ave.losing,
+ ave.winning=ave.winning,
+ profit = profit,
+ all.profit=all.profit,
+ sharpe.ratio=sharpe.ratio
+ )
+ return(results)
+}
+ 
+
+```
+
+  + a) Using the last 180 days of data, what is the correlation between the prices of these two securities and are the two securities co-integrated? (report the appropriate pvalue). The R function myvals in the supplied R code file will be useful for this.
+```{r,warning=FALSE, message=FALSE}
+myvals('BKEP','DSX')
+```
+
+**BKEP and DSX are weakly correlated (0.3228341), and the cointegration p-value (0.08622883) suggests the pairs are almost stationary, therefore, might be suited for pair trading.**
+
+
+  + b) How much money total (today) would someone have made if they invested $10,000 in each short and long position each time ? That is, what was the final profit, assuming they could invest $10,000 each time? We are assuming not compounding our growth but investing the same fixed amount each time. Note that it is possible your last trade is not closed out by the end of our time perioddecide how to handle that if needed. The default in the code is to close out the trade.
+```{r,warning=FALSE, message=FALSE}
+# Brazilian Method(diff) and Pairslog.com Method(ratio)
+diff.result<-pairs.trade('BKEP','DSX',from = "2013-10-01", to = Sys.Date(),ma.days = 14,method = "diff",threshold = 2,closeout = F)
+ratio.result<-pairs.trade('BKEP','DSX',from = "2013-10-01", to = Sys.Date(),ma.days = 14,method = "ratio",threshold = 2,closeout = F)
+
+cat("The Brazilian Method(diff) approach would result in final profit of $", diff.result$profit,'\n')
+cat("The Pairslog.com Method(ratio) approach would result in final profit of $", ratio.result$profit,'\n')
+```
+
+
+  + c) How many pair trades triggered? How many were profitable?
+```{r,warning=FALSE, message=FALSE}
+cat("The Brazilian Method(diff) approach would trigger", diff.result$number.of.trades,'pair trades.', "Among them,", diff.result$Winners, "are profitable.\n")
+cat("The Pairslog.com Method(ratio) approach would result in final profit of $", ratio.result$number.of.trades,'pair trades.', "Among them,", ratio.result$Winners, "are profitable.\n")
+```
+
+
+  + d) What was the best pair trade? The worst pair trade?
+```{r,warning=FALSE, message=FALSE}
+cat("For Brazilian Method(diff) approach, the best pair trade made a profit of $", diff.result$max.profit, "the worst pair trade made a profit of $", diff.result$min.profit, "\n")
+cat("For Pairslog.com Method(ratio) approach, the best pair trade made a profit of $", ratio.result$max.profit, "the worst pair trade made a profit of $", ratio.result$min.profit, "\n")
+```
+
+  + e) What was the average of the losing trades and average of the winning trades?
+```{r,warning=FALSE, message=FALSE}
+cat("For Brazilian Method(diff) approach, the average of the losing trades was $", diff.result$ave.losing, "the average of the winning trades was $", diff.result$ave.winning, "\n")
+cat("For Pairslog.com Method(ratio) approach, the average of the losing trades was $", ratio.result$ave.losing, "the average of the winning trades was $", ratio.result$ave.winning, "\n")
+```
+
+  + f) Finally, which pairs trading method would you prefer? Explain.
+```{r,warning=FALSE, message=FALSE}
+diff.result$number.of.trades
+ratio.result$number.of.trades
+
+diff.result$winning.percentage
+ratio.result$winning.percentage
+
+diff.result$sharpe.ratio
+ratio.result$sharpe.ratio
+
+diff.result$profit
+ratio.result$profit
+
+diff.result$profit/diff.result$number.of.trades
+ratio.result$profit/ratio.result$number.of.trades
+ 
+```
+
+**I would prefer Pairslog.com Method(ratio) approach. Because it has triggered less trades, therefore, less transaction costs; higher winning percentage; higher Sharpe Ratio; slightly less final profit, but higher average profit, so the lower total profit is due to less trades in this period, but on average of each trade, the ratio approach performs better.**
+  
+-----
+
+
+
+2. Repeat the steps above with the pair FAS and FAZ. These are ETFs that are designed to
+have a correlation of -1. See more information about pairs trading ETFs here:[](http://etfdb.com/etf-trading-strategies/how-to-use-a-pairs-trading-strategy-with-etfs/)
+
+  + a) Using the last 180 days of data, what is the correlation between the prices of these two securities and are the two securities co-integrated? (report the appropriate pvalue). The R function myvals in the supplied R code file will be useful for this.
+```{r,warning=FALSE, message=FALSE}
+myvals('FAS','FAZ')
+```
+
+**FAZ and FAS are almost perfectly negatively correlated (-0.9460142), but the Cointegration p-value (0.3894959)suggests non-stationary. So they might not be good for pair trading, as they are not mean-reverting.**
+
+
+  + b) How much money total (today) would someone have made if they invested $10,000 in each short and long position each time ? That is, what was the final profit, assuming they could invest $10,000 each time? We are assuming not compounding our growth but investing the same fixed amount each time. Note that it is possible your last trade is not closed out by the end of our time perioddecide how to handle that if needed. The default in the code is to close out the trade.
+```{r,warning=FALSE, message=FALSE}
+# Brazilian Method(diff) and Pairslog.com Method(ratio)
+diff.result<-pairs.trade('FAS','FAZ',from = "2013-10-01", to = Sys.Date(),ma.days = 14,method = "diff",threshold = 2,closeout = F)
+ratio.result<-pairs.trade('FAS','FAZ',from = "2013-10-01", to = Sys.Date(),ma.days = 14,method = "ratio",threshold = 2,closeout = F)
+
+cat("The Brazilian Method(diff) approach would result in final profit of $", diff.result$profit,'\n')
+cat("The Pairslog.com Method(ratio) approach would result in final profit of $", ratio.result$profit,'\n')
+```
+
+
+  + c) How many pair trades triggered? How many were profitable?
+```{r,warning=FALSE, message=FALSE}
+cat("The Brazilian Method(diff) approach would trigger", diff.result$number.of.trades,'pair trades.', "Among them,", diff.result$Winners, "are profitable.\n")
+cat("The Pairslog.com Method(ratio) approach would result in final profit of $", ratio.result$number.of.trades,'pair trades.', "Among them,", ratio.result$Winners, "are profitable.\n")
+```
+
+
+  + d) What was the best pair trade? The worst pair trade?
+```{r,warning=FALSE, message=FALSE}
+cat("For Brazilian Method(diff) approach, the best pair trade made a profit of $", diff.result$max.profit, "the worst pair trade made a profit of $", diff.result$min.profit, "\n")
+cat("For Pairslog.com Method(ratio) approach, the best pair trade made a profit of $", ratio.result$max.profit, "the worst pair trade made a profit of $", ratio.result$min.profit, "\n")
+```
+
+  + e) What was the average of the losing trades and average of the winning trades?
+```{r,warning=FALSE, message=FALSE}
+cat("For Brazilian Method(diff) approach, the average of the losing trades was $", diff.result$ave.losing, "the average of the winning trades was $", diff.result$ave.winning, "\n")
+cat("For Pairslog.com Method(ratio) approach, the average of the losing trades was $", ratio.result$ave.losing, "the average of the winning trades was $", ratio.result$ave.winning, "\n")
+```
+
+  + f) Finally, which pairs trading method would you prefer? Explain.
+```{r,warning=FALSE, message=FALSE}
+diff.result$number.of.trades
+ratio.result$number.of.trades
+
+diff.result$winning.percentage
+ratio.result$winning.percentage
+
+diff.result$sharpe.ratio
+ratio.result$sharpe.ratio
+
+diff.result$profit
+ratio.result$profit
+
+diff.result$profit/diff.result$number.of.trades
+ratio.result$profit/ratio.result$number.of.trades
+ 
+```
+
+**I would prefer Pairslog.com Method(ratio) approach. Because it has triggered less trades, therefore, less transaction costs; the two winning percentages are not too far off; higher Sharpe Ratio; although significant less final profit, but higher average profit, so the lower total profit is due to less trades in this period, but on average of each trade, the ratio approach performs better.**
+ 
+
+-----
+
+
+
+3. Repeat the steps above with the pair DPW and EVM. The results should be pretty good
+for this pair. Look up DPW on finance.yahoo.com. Does it look like a stock that would be
+easy to trade in a pairs trading strategy (that is, could you short it, or purchase it in
+volume?).
+
+
+  + a) Using the last 180 days of data, what is the correlation between the prices of these two securities and are the two securities co-integrated? (report the appropriate pvalue). The R function myvals in the supplied R code file will be useful for this.
+```{r,warning=FALSE, message=FALSE}
+myvals('DPW','EVM')
+```
+
+**DPW and EVM are weakly correlated(0.2877883), and the Cointegration p-value (0.06656226) suggests almost stationary. So they might be suited for pair trading, as they are mean-reverting.**
+
+
+  + b) How much money total (today) would someone have made if they invested $10,000 in each short and long position each time ? That is, what was the final profit, assuming they could invest $10,000 each time? We are assuming not compounding our growth but investing the same fixed amount each time. Note that it is possible your last trade is not closed out by the end of our time perioddecide how to handle that if needed. The default in the code is to close out the trade.
+```{r,warning=FALSE, message=FALSE}
+# Brazilian Method(diff) and Pairslog.com Method(ratio)
+diff.result<-pairs.trade('DPW','EVM',from = "2013-10-01", to = Sys.Date(),ma.days = 14,method = "diff",threshold = 2,closeout = F)
+ratio.result<-pairs.trade('DPW','EVM',from = "2013-10-01", to = Sys.Date(),ma.days = 14,method = "ratio",threshold = 2,closeout = F)
+
+cat("The Brazilian Method(diff) approach would result in final profit of $", diff.result$profit,'\n')
+cat("The Pairslog.com Method(ratio) approach would result in final profit of $", ratio.result$profit,'\n')
+```
+
+
+  + c) How many pair trades triggered? How many were profitable?
+```{r,warning=FALSE, message=FALSE}
+cat("The Brazilian Method(diff) approach would trigger", diff.result$number.of.trades,'pair trades.', "Among them,", diff.result$Winners, "are profitable.\n")
+cat("The Pairslog.com Method(ratio) approach would result in final profit of $", ratio.result$number.of.trades,'pair trades.', "Among them,", ratio.result$Winners, "are profitable.\n")
+```
+
+
+  + d) What was the best pair trade? The worst pair trade?
+```{r,warning=FALSE, message=FALSE}
+cat("For Brazilian Method(diff) approach, the best pair trade made a profit of $", diff.result$max.profit, "the worst pair trade made a profit of $", diff.result$min.profit, "\n")
+cat("For Pairslog.com Method(ratio) approach, the best pair trade made a profit of $", ratio.result$max.profit, "the worst pair trade made a profit of $", ratio.result$min.profit, "\n")
+```
+
+  + e) What was the average of the losing trades and average of the winning trades?
+```{r,warning=FALSE, message=FALSE}
+cat("For Brazilian Method(diff) approach, the average of the losing trades was $", diff.result$ave.losing, "the average of the winning trades was $", diff.result$ave.winning, "\n")
+cat("For Pairslog.com Method(ratio) approach, the average of the losing trades was $", ratio.result$ave.losing, "the average of the winning trades was $", ratio.result$ave.winning, "\n")
+```
+
+  + f) Finally, which pairs trading method would you prefer? Explain.
+```{r,warning=FALSE, message=FALSE}
+diff.result$number.of.trades
+ratio.result$number.of.trades
+
+diff.result$winning.percentage
+ratio.result$winning.percentage
+
+diff.result$sharpe.ratio
+ratio.result$sharpe.ratio
+
+diff.result$profit
+ratio.result$profit
+
+diff.result$profit/diff.result$number.of.trades
+ratio.result$profit/ratio.result$number.of.trades
+ 
+```
+
+**I would prefer Pairslog.com Method(ratio) approach. Because it has triggered less trades, therefore, less transaction costs; the two winning percentages are not too far off; higher Sharpe Ratio; although significant less final profit, but higher average profit, so the lower total profit is due to less trades in this period, but on average of each trade, the ratio approach performs better.**
+
+**DPW doesn't look like easy to short in volumn, there are only 3.86k shares short, it might be not enough trading volume on a daily basis so that one can easily enter and exit a trade without affecting the price severely; in addition, the price of DPW is less than $1, but one can't short stocks priced under $1. Therefore, technically this pair is not suitable for trading, although previous analysis suggested otherwise.**
+
+-----
+
+
+
+4. Repeat the steps above with the randomly chosen pair BECN and GOV. This pair is not
+highly correlated and hence not a good candidate for pairs trading. What do the trading
+results look like for a pair that is probably not mean reverting? Report the same items as
+above.
+
+  + a) Using the last 180 days of data, what is the correlation between the prices of these two securities and are the two securities co-integrated? (report the appropriate pvalue). The R function myvals in the supplied R code file will be useful for this.
+```{r,warning=FALSE, message=FALSE}
+myvals('BECN','GOV')
+```
+
+**BECM and GOV are moderately correlated(0.537037), but the Cointegration p-value (0.9621805) suggests strong evidence of non-stationary. So they might be not suited for pair trading, as they are not  mean-reverting.**
+
+
+  + b) How much money total (today) would someone have made if they invested $10,000 in each short and long position each time ? That is, what was the final profit, assuming they could invest $10,000 each time? We are assuming not compounding our growth but investing the same fixed amount each time. Note that it is possible your last trade is not closed out by the end of our time perioddecide how to handle that if needed. The default in the code is to close out the trade.
+```{r,warning=FALSE, message=FALSE}
+# Brazilian Method(diff) and Pairslog.com Method(ratio)
+diff.result<-pairs.trade('BECN','GOV',from = "2013-10-01", to = Sys.Date(),ma.days = 14,method = "diff",threshold = 2,closeout = F)
+ratio.result<-pairs.trade('BECN','GOV',from = "2013-10-01", to = Sys.Date(),ma.days = 14,method = "ratio",threshold = 2,closeout = F)
+
+cat("The Brazilian Method(diff) approach would result in final profit of $", diff.result$profit,'\n')
+cat("The Pairslog.com Method(ratio) approach would result in final profit of $", ratio.result$profit,'\n')
+```
+
+
+  + c) How many pair trades triggered? How many were profitable?
+```{r,warning=FALSE, message=FALSE}
+cat("The Brazilian Method(diff) approach would trigger", diff.result$number.of.trades,'pair trades.', "Among them,", diff.result$Winners, "are profitable.\n")
+cat("The Pairslog.com Method(ratio) approach would result in final profit of $", ratio.result$number.of.trades,'pair trades.', "Among them,", ratio.result$Winners, "are profitable.\n")
+```
+
+
+  + d) What was the best pair trade? The worst pair trade?
+```{r,warning=FALSE, message=FALSE}
+cat("For Brazilian Method(diff) approach, the best pair trade made a profit of $", diff.result$max.profit, "the worst pair trade made a profit of $", diff.result$min.profit, "\n")
+cat("For Pairslog.com Method(ratio) approach, the best pair trade made a profit of $", ratio.result$max.profit, "the worst pair trade made a profit of $", ratio.result$min.profit, "\n")
+```
+
+  + e) What was the average of the losing trades and average of the winning trades?
+```{r,warning=FALSE, message=FALSE}
+cat("For Brazilian Method(diff) approach, the average of the losing trades was $", diff.result$ave.losing, "the average of the winning trades was $", diff.result$ave.winning, "\n")
+cat("For Pairslog.com Method(ratio) approach, the average of the losing trades was $", ratio.result$ave.losing, "the average of the winning trades was $", ratio.result$ave.winning, "\n")
+```
+
+  + f) Finally, which pairs trading method would you prefer? Explain.
+```{r,warning=FALSE, message=FALSE}
+diff.result$number.of.trades
+ratio.result$number.of.trades
+
+diff.result$winning.percentage
+ratio.result$winning.percentage
+
+diff.result$sharpe.ratio
+ratio.result$sharpe.ratio
+
+diff.result$profit
+ratio.result$profit
+
+diff.result$profit/diff.result$number.of.trades
+ratio.result$profit/ratio.result$number.of.trades
+ 
+```
+
+**I would prefer Brazilian Method(diff) approach, as it would incur less loss. All the other measures are similar for the two approaches, except for Sharpe Ratio is meaningless for negative average profits. For a pair that is not mean-reverting, the trading result would more likely to loss money, rather than making any profits, both in long run and in single trade. Therefore, we should not pair-trade two securities that are not stationary/mean-reverting.**
+

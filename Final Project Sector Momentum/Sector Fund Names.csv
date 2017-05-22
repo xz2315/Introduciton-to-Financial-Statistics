@@ -1,0 +1,36 @@
+Name,Ticker,Industry Assigment
+Fidelity Select Air Transportation,FSAIX,Airlines
+Fidelity Select Automotive,FSAVX,Transportation
+Fidelity Select Banking,FSRBX,Banking
+Fidelity Select Biotechnology,FBIOX,Biotechnology
+Fidelity Select Brokerage and Investment Management,FSLBX,Banking
+Fidelity Select Chemicals,FSCHX,Basic materials
+Fidelity Select Computers,FDCPX,Computers
+Fidelity Select Construction and Housing,FSHOX,Real estate
+Fidelity Select Consumer Industries,FSCPX,Consumer
+Fidelity Select Defense and Aerospace,FSDAX,Defense
+Fidelity Select Developing Communications,FSDCX,Communications
+Fidelity Select Electronics,FSELX,Electronics
+Fidelity Select Energy,FSENX,Energy
+Fidelity Select Energy Services,FSESX,Energy services
+Fidelity Select Financial Services,FIDSX,Financial services
+Fidelity Select Food and Agriculture,FDFAX,Food
+Fidelity Select Gold,FSAGX,Gold
+Fidelity Select Health Care,FSPHX,Health care
+Fidelity Select Home Finance,FSVLX,Banking
+Fidelity Select Industrial Equipment,FSCGX,Industrials
+Fidelity Select Industrial Materials,FSDPX,Basic materials
+Fidelity Select Insurance,FSPCX,Financial services
+Fidelity Select Leisure,FDLSX,Leisure
+Fidelity Select Medical Delivery,FSHCX,Health care
+Fidelity Select Medical Equipment and Systems,FSMEX,Health care
+Fidelity Select Multimedia,FBMPX,Communications
+Fidelity Select Natural Gas,FSNGX,Energy
+Fidelity Select Pharmaceuticals,FPHAX,Health care
+Fidelity Select Retailing,FSRPX,Retailing
+Fidelity Select Software and Computer Services,FSCSX,Computers
+Fidelity Select Technology,FSPTX,Technology
+Fidelity Select Telecommunications,FSTCX,Telecommunications
+Fidelity Select Transportation,FSRFX,Transportation
+Fidelity Select Utilities Growth,FSUTX,Utilities
+Fidelity Select Wireless,FWRLX,Communications

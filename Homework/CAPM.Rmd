@@ -1,0 +1,138 @@
+---
+title: "CAPM"
+author: "Xiner Zhou"
+date: "October 19, 2016"
+output: word_document
+---
+
+**Finding Alpha and Beta**
+```{r,warning=FALSE, message=FALSE}
+# get stock returns
+library(zoo,lib="E:/")
+library(xts,lib="E:/")
+library(TTR,lib="E:/")
+library(quantmod,lib="E:/")
+ticker<-"AAPL"
+stock<-getSymbols(ticker,from="2012-09-01", auto.assign = FALSE)
+spy<-getSymbols("SPY",from="2012-09-01", auto.assign = FALSE)
+stock.ret<-monthlyReturn(Ad(stock))
+spy.ret<-monthlyReturn(Ad(spy))
+
+# Least Absulute Deviation (LAD)
+library(SparseM,lib="E:/")
+library(quantreg,lib="E:/")
+lad.fit<-rq(stock.ret~spy.ret)
+# coefficient
+cat("The 3 Year Beta for", ticker, " is ", coef(lad.fit)[2], '\n')
+cat("The 3 Year Alpha for", ticker, " is ", coef(lad.fit)[1], '\n')
+# confident interval via Bootstrap 
+library(boot)
+myfunc<-function(data,i){
+  x<-data[i,1]
+  y<-data[i,2]
+  fit<-rq(y~x)
+  return(coef(fit)[2])
+}
+mydata<-cbind(as.numeric(spy.ret),as.numeric(stock.ret))
+boots.fit<-boot(mydata,myfunc,R=1000)
+boot.ci(boots.fit)
+
+
+# Least-square Regression
+lm.fit<-lm(stock.ret~spy.ret)
+# coefficient
+cat("The 3 Year Beta for", ticker, " is ", coef(lm.fit)[2], '\n')
+cat("The 3 Year Alpha for", ticker, " is ", coef(lm.fit)[1], '\n')
+# confident interval  
+confint(lm.fit)
+# Check on R-squared
+summary(lm.fit)
+ 
+```
+
+**The Single Factor/Index Model**
+```{r}
+asset.names<-c("ATVI","ADBE","AKAM","AMZN","AMGN","APOL","AAPL")
+
+n.asset<-length(asset.names)
+getSymbols("SPY",from="2012-01-01")
+spy.ret<-monthlyReturn(Ad(SPY))
+
+beta.ls<-matrix(nrow=n.asset,ncol=3)
+colnames(beta.ls)<-c("Beta","Lower CI","Upper CI")
+rownames(beta.ls)<-asset.names
+alpha.ls<-matrix(nrow=n.asset,ncol=3)
+colnames(alpha.ls)<-c("Alpha","Lower CI","Upper CI")
+rownames(alpha.ls)<-asset.names
+
+res.cor<-matrix(nrow=n.asset,ncol=n.asset)
+
+reg.res.var<-1:n.asset
+names(reg.res.var)<-asset.names
+
+for(i in 1:n.asset){
+    
+  # find alpha and beta
+  x<-getSymbols(asset.names[i],from="2012-01-01",auto.assign = FALSE)
+  x.ret<-monthlyReturn(Ad(x))
+  fit<-lm(x.ret~spy.ret)
+  beta.ls[i,1]<-coef(fit)[2]
+  alpha.ls[i,1]<-coef(fit)[1]
+  
+  beta.ls[i,2]<-confint(fit)[2,1]
+  beta.ls[i,3]<-confint(fit)[2,2]
+  
+  alpha.ls[i,2]<-confint(fit)[1,1]
+  alpha.ls[i,3]<-confint(fit)[1,2]
+  
+  reg.res.var[i]<-summary(fit)$sigma^2
+  
+  # residual correlation with any other stocks
+  for(j in 1:n.asset){
+    y<-getSymbols(asset.names[j],from="2012-01-01",auto.assign = FALSE)
+    y.ret<-monthlyReturn(Ad(y))
+    a<-residuals(lm(x.ret~spy.ret)) 
+    b<-residuals(lm(y.ret~spy.ret)) 
+    res.cor[i,j]<-cor(a,b)
+  }
+  
+}
+
+# Print beta and alpha
+beta.ls
+alpha.ls
+
+# Print residual correlation to validate single index model assumption that stocks are indedependet except for market pulling
+res.cor
+
+
+cov.mat<-matrix(nrow=n.asset,ncol=n.asset)
+emp.cov.mat<-matrix(nrow=n.asset,ncol=n.asset)
+rownames(cov.mat)<-asset.names
+colnames(cov.mat)<-asset.names
+rownames(emp.cov.mat)<-asset.names
+colnames(emp.cov.mat)<-asset.names
+
+for(i in 1:n.asset){
+  # Single Index Model estimated Variance-Covariance Matrix
+  market.var<-var(spy.ret)
+  
+  # Empirical Variance-Covariance Matrix
+  for(j in 1:n.asset){
+    cov.mat[i,j]<-beta.ls[i,1]*beta.ls[j,1]*market.var
+    if(i==j){cov.mat[i,j]<-cov.mat[i,j]+reg.res.var[i]}
+    
+    x<-getSymbols(asset.names[i],from="2012-01-01",auto.assign = FALSE)
+    x.ret<-monthlyReturn(Ad(x))
+    y<-getSymbols(asset.names[j],from="2012-01-01",auto.assign = FALSE)
+    y.ret<-monthlyReturn(Ad(y))
+    if(i!=j){emp.cov.mat[i,j]<-cov(as.numeric(x.ret),as.numeric(y.ret))}
+    else{emp.cov.mat[i,i]<-var(as.numeric(x.ret))}
+  }
+}
+cov.mat<-round(cov.mat,6)
+emp.cov.mat<-round(emp.cov.mat,6)
+cov.mat
+emp.cov.mat
+```
+

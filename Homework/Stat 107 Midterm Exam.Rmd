@@ -1,0 +1,290 @@
+---
+title: "Stat 107: Quantitative Methods for Economics 
+                    Take Home Exam"
+author: "Xiner Zhou"
+date: "10/20/2016"
+output: html_document
+---
+
+![](/Volumes/NO NAME/Course Work at Harvard/Introduction to Financial Statisitcs/pic/Midterm Q1.png). 
+
+![](/Volumes/NO NAME/Course Work at Harvard/Introduction to Financial Statisitcs/pic/Midterm Q2.png). 
+
+![](/Volumes/NO NAME/Course Work at Harvard/Introduction to Financial Statisitcs/pic/Midterm Q3.png). 
+
+![](/Volumes/NO NAME/Course Work at Harvard/Introduction to Financial Statisitcs/pic/Midterm Q4.png). 
+
+![](/Volumes/NO NAME/Course Work at Harvard/Introduction to Financial Statisitcs/pic/Midterm Q5.png). 
+```{r}
+set.seed(02138)
+# set the number of simulation
+n.sim<-10000
+# initialize place-holder for simulated bonus
+bonus<-rep(0,n.sim)
+
+for(i in 1:n.sim){
+  # step 1: sell more than 4 bicycles ? 
+  sell.more.4<-rbinom(n=1,size=1,prob = 0.4)
+  
+  if(sell.more.4==1){
+  # step 2: if sell more than 4, decide how many sold
+    n.sell<-sample(x=c(5,6,7,8), size=1, replace = FALSE, prob =c(0.35,0.45,0.15,0.05))
+    
+  # step 3: for each sold bicycle, decide which model it is and its associated bonus
+    bonus.each<-sample(x=c(10,15,20,25), size=n.sell, replace = TRUE, prob = c(0.4,0.35,0.2,0.05))
+  # step 4: add up bonus
+    bonus[i]<-sum(bonus.each)
+  }
+}
+
+cat("The expected bonus in a day is", mean(bonus), '\n')
+cat("95% confident interval for the mean bonus is", quantile(bonus, probs = c(0.05,0.95)), '\n')
+```
+
+```{r}
+# Loading required libraries
+library(quantmod)
+
+# include source code
+source("/Volumes/NO NAME/Course Work at Harvard/Introduction to Financial Statisitcs/Eric Zivot.R")
+
+# expected return vector
+er<-c(0.24,0.15)
+
+# covariance matrix
+cov.mat<-matrix(c(0.32^2, 0.1*0.32*0.21,  
+                  0.1*0.32*0.21, 0.21^2),nrow=2,ncol=2,byrow = T)
+names(er)<-c("Stock Fund","Bond Fund")
+colnames(cov.mat)<-c("Stock Fund","Bond Fund")
+rownames(cov.mat)<-c("Stock Fund","Bond Fund")
+
+############################################
+## Global Minimum Variance Portfolio
+###########################################
+gmin.port<-globalMin.portfolio(er,cov.mat)
+print(gmin.port)
+plot(gmin.port)
+```
+
+**The Global Minimum Variance porfolio puts 28.09% wealth in Stock Fund and 71.91% in Bond Fund, and it has expected return of 17.53% and risk(standard deviation) of 18.33%.**
+
+```{r}
+###########################################
+## Efficient Frontier Curve
+###########################################
+ef<-efficient.frontier(er, cov.mat, nport=100, alpha.min=-5, alpha.max=5)
+plot(ef, plot.assets=T)
+ 
+# More interestingly, add a point for the Global Minimum Variance Portfolio
+points(gmin.port$sd, gmin.port$er, col="blue", pch=21, bg="blue")
+text(gmin.port$sd+0.01, gmin.port$er, "Minimum Variance", col="blue")
+```
+
+```{r}
+###########################################
+## Tangency Portfolio and Capital Market Line
+###########################################
+
+# Compute tangency portfolio
+rk.free<-0.05 # Money Market
+tan.port<-tangency.portfolio(er, cov.mat, rk.free)
+print(tan.port)
+plot(tan.port)
+```
+
+**The tangent portfolio puts 46.23% wealth in Stock Fund and 53.77% in Bond Fund, and it has an expected return of 19.16% and risk(standard deviation) of 19.49%.**
+
+Let's visualize the Efficient Frontier with GMV and Tangent Portfolio.
+```{r}
+# compute slope of tangent line (aka capital market line)
+sr.tan<-(tan.port$er-rk.free)/tan.port$sd
+
+plot(ef, plot.assets=T)
+
+# Adds points to the plot representing GMV and tangent portfolios
+points(gmin.port$sd, gmin.port$er, col="blue", pch=21, bg="blue")
+points(tan.port$sd, tan.port$er, col="red", pch=21, bg="red")
+
+# Adds a line to the plot representing the CML
+abline(a=0.05, b=sr.tan,col="red")
+```
+
+```{r}
+eff.port<-efficient.portfolio(er, cov.mat, target.return = 0.28)
+print(eff.port)
+plot(eff.port)
+```
+
+**The weight for Stock Fund is 144.44% and weight for Bond Fund is -44.44%, it means you would long Stock Fund and short Bond fund to ahieve the expected return of 28%, the risk(standard deviation) is 46.23%.**
+
+**If instead you used the money market fund and the tangent portfolio to construct a portfolio that returns 28%:**
+```{r}
+# weight for tangent portfolio
+w.tangent<-(28-5)/(19.16-5)
+cat("The weight for tangent portflio is", round(w.tangent,2), "%\n")
+cat("The weight for money market is", round(1-w.tangent,2), "%\n")
+
+# risk/standard deviation
+cat("The resulting portfolio standard deviation is", round(w.tangent*19.49,2), "%\n")
+
+cat("The reduction in standard devation you could attain is", round(46.23-w.tangent*19.49,2), "%\n")
+```
+
+**The portfolio with an expected return of 28% based on two risky assets has standard deviation 46.23%, the associated weights for Stock Fund and Bond Fund is 144.44% and -44.44%, respectively, if willing to go long and short. However, this risk can be reduced to 31.66%, almost reduced one third risk, if instead you used the money market fund and the tangent portfolio to construct a portfoio that has the same expected return.**
+
+
+
+
+```{r}
+# Mike's moidified algorithm
+mikeline<-function(x,y){
+  xmed<-median(x)
+  xbar1<-median(x[x<=xmed])
+  ybar1<-median(y[x<=xmed])
+  xbar2<-median(x[x>xmed])
+  ybar2<-median(y[x>xmed])
+  
+  slope<-(ybar2-ybar1)/(xbar2-xbar1)
+  inter<-ybar1-slope*xbar1
+  cat("Intercept = ",inter, " Slope = ", slope, "\n")
+  #return(slope)
+}
+
+# get IBM monthly adjusted return
+getSymbols("IBM",from="2013-09-01")
+ibm.ret<-monthlyReturn(Ad(IBM))
+
+# get S&P 500 index monthly adjusted return
+getSymbols("SPY", from="2013-09-01")
+spy.ret<-monthlyReturn(Ad(SPY))
+
+# Use Mike's algorithm, fit the Market Model
+mikeline(spy.ret, ibm.ret)
+
+# Use Least Square Regression, fit the Market Model
+lm.fit<-lm(ibm.ret~spy.ret)
+ 
+```
+
+**Mike's modified model produces a smaller Beta than the usual least square regression produces, therefore implies less volatility or systematic risk in comparison to the market as a whole.**
+
+```{r}
+# confident interval via Bootstrap 
+library(boot)
+
+mikeline<-function(x,y){
+  xmed<-median(x)
+  xbar1<-median(x[x<=xmed])
+  ybar1<-median(y[x<=xmed])
+  xbar2<-median(x[x>xmed])
+  ybar2<-median(y[x>xmed])
+  
+  slope<-(ybar2-ybar1)/(xbar2-xbar1)
+  inter<-ybar1-slope*xbar1
+  #cat("Intercept = ",inter, " Slope = ", slope, "\n")
+  return(slope)
+}
+
+myfunc<-function(data,i){
+  x<-data[i,1]
+  y<-data[i,2]
+  fit<-mikeline(x, y)
+  return(fit)
+}
+mydata<-cbind(as.numeric(spy.ret),as.numeric(ibm.ret))
+boots.fit<-boot(mydata,myfunc,R=1000)
+boot.ci(boots.fit)
+
+
+```
+
+
+
+```{r}
+# Download stock names
+mystocks<-read.csv("http://people.fas.harvard.edu/~mparzen/stat107/dow30.csv",header = FALSE, colClasses = "character")
+
+# how many stocks
+n.stock<-nrow(mystocks)
+ 
+# get SPY as market proxy  
+getSymbols("SPY",from="2013-09-01",to="2016-09-01")
+spy.ret<-monthlyReturn(Ad(SPY))
+
+# Initialize a placeholder for Beta's
+beta<-rep(NA,n.stock)
+names(beta)<-mystocks[,1]
+# Initialize a placeholder for R-squared
+R2<-rep(NA,n.stock)
+names(R2)<-mystocks[,1]
+
+# Compute Beta for each stock
+for(i in 1:n.stock){
+  ticker<-mystocks[i,1]
+  stockdata<-getSymbols(ticker,from="2013-09-01",to="2016-09-01",auto.assign = FALSE)
+  y.ret<-monthlyReturn(Ad(stockdata))
+  beta[i]<-coef(lm(y.ret~spy.ret))[2]
+  R2[i]<-summary(lm(y.ret~spy.ret))$r.squared
+}
+beta
+ 
+# Compute the standard deviation of monthly returns for each stock in the data file
+# Initialize a placeholder for sd
+sd.vec<-rep(NA,n.stock)
+names(sd.vec)<-mystocks[,1]
+# Compute sd for each stock
+for(i in 1:n.stock){
+  ticker<-mystocks[i,1]
+  stockdata<-getSymbols(ticker,from="2013-09-01",to="2016-09-01",auto.assign = FALSE)
+  y.ret<-monthlyReturn(Ad(stockdata))
+  sd.vec[i]<-sd(y.ret)
+}
+
+sd.vec
+
+# Produce a scatter plot of beta on the x-axis and standard deviation of monthly returns on the y-axis
+plot(beta, sd.vec,
+     type="p",
+     col="brown",
+     ylab="Risk/Standard Deviation",
+     xlab="Beta")
+
+
+
+
+
+```
+
+**The plot-Beta versus standard deviation-appear to suggest that there is a positive linear relationship between Beta and risk as measured by standard deviation. It is reasonable, because beta is a measure of volatility, or systematic risk, of a stock in comparison to the market as a whole. A larger positive beta suggests a higher volatility in individual stock in response to swings in the market. So given the same underlying market, stocks associated with larger beta would have higher standard deviation. It's exactly what we observe here.**
+
+```{r}
+fit<-lm(sd.vec~beta)
+summary(fit)
+```
+
+**The slope = 0.022843 and the slope = 0.029631 are both statistically significant.The model implies that, when individual stock's beta =0, that is, it doesn't move with the market, it still has a standard deviation of 2.96%, this can be viewed as average firm-specific or unsystematic risk; and as the stock responds more sensitively to the market as a whole, with each 1-unit increase in beta, the standard deviation increases 2.28%, this can be viewed as systematic risk due to response to market swing.**
+
+```{r}
+# plot R-squared vs Beta
+plot(beta, R2,
+     type="p",
+     col="brown",
+     ylab="R-Squared",
+     xlab="Beta")
+```
+
+**In my sample, large estimate of beta correspond with higher R-squared values, this agrees with my expectation. R-squared measures the percentage of a stock's historical price movements that could be explained by movements in a benchmark index. A larger estimate of beta indicates higher sensitivity of a stock's respond to swings in the market as whole, it's equivalent to say that, more variation in individual stock's movement can be explained by the market, therefore, has higher R-squared. So I expect Beta and R-squared should have a significant positive relationship.**
+
+
+
+$$ \beta_p = \frac{Cov(R_p, R_M)}{Var(R_M)} $$
+$$ = \frac{Cov(x_{A}R_{A}+x_{B}R_{B}, R_M)}{Var(R_M)} $$
+$$ = \frac{x_{A}Cov(R_{A}, R_M)+x_{B}Cov(R_{B}, R_M)}{Var(R_M)} $$
+$$ = \frac{x_{A}Cov(\alpha_{A}+\beta_{A}R_{A}+\epsilon_{A}, R_M)+x_{B}Cov(\alpha_{B}+\beta_{B}R_{B}+\epsilon_{B}, R_M)}{Var(R_M)} $$
+
+Since $\alpha_{A}$ and $\alpha_{B}$ are constant, and $\epsilon_{A}$ and $\epsilon_{B}$ are independent of $R_{M}$, therefore:
+
+$$ = \frac{x_{A}Cov(\beta_{A}R_{M}, R_M)+x_{B}Cov(\beta_{B}R_{M}, R_M)}{Var(R_M)} $$
+$$ = \frac{x_{A}\beta_{A}Cov(R_{M}, R_M)+x_{B}\beta_{B}Cov(R_{M}, R_M)}{Var(R_M)} $$
+$$ = \frac{x_{A}\beta_{A}Var(R_M)+x_{B}\beta_{B}Var(R_M)}{Var(R_M)} $$
+$$ = x_{A}\beta_{A}+x_{B}\beta_{B}$$
